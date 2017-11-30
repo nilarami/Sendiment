@@ -1,0 +1,55 @@
+{
+  "project_info": {
+    "project_number": "895376942235",
+    "firebase_url": "https://nupek-sensible.firebaseio.com",
+    "project_id": "nupek-sensible",
+    "storage_bucket": "nupek-sensible.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:895376942235:android:b5d75907de594a2d",
+        "android_client_info": {
+          "package_name": "com.google.firebase.codelab.friendlychat"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "895376942235-iejr8hjj7et24vv2ua07r477fscsi4vs.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.google.firebase.codelab.friendlychat",
+            "certificate_hash": "88f7c6fdb86798f24823d8153d4ade638e19736b"
+          }
+        },
+        {
+          "client_id": "895376942235-mjpv4l3m9o34oebs57jmchl0ct1vc2n0.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAw8kkw485GOulNkXeyd6LMnO26EK5E79M"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 2,
+          "other_platform_oauth_client": [
+            {
+              "client_id": "895376942235-mjpv4l3m9o34oebs57jmchl0ct1vc2n0.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        },
+        "ads_service": {
+          "status": 2
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
