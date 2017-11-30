@@ -10,5 +10,8 @@ code for Android,. Code includes Firebase platform linked below.
 Search and Follow Git Tutorial on Google.
 
 
+Created by the Dream Team.
+
+
 ## License
 See [LICENSE](LICENSE)
