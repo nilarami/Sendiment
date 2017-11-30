@@ -8,15 +8,7 @@
         android:id="@+id/fname"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
-        android:hint="First Name"
-        android:inputType="textPersonName"
-        android:paddingTop="20dp" />
-
-    <EditText
-        android:id="@+id/lname"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:hint="Last Name"
+        android:hint="Full Name"
         android:inputType="textPersonName"
         android:paddingTop="20dp" />
 
@@ -29,6 +21,7 @@
         android:paddingTop="20dp" />
 
     <EditText
+        android:id="@+id/signup_pswd"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:ems="10"
@@ -47,14 +40,16 @@
         android:paddingTop="20dp" />
 
     <EditText
+        android:id="@+id/birthday_spinner"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:ems="10"
-        android:hint="Birthday"
-        android:inputType="date"
+        android:hint="Birth Year"
+        android:inputType="number"
         android:paddingTop="20dp" />
 
     <Button
+        android:id="@+id/btn_submit_sign_up"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="center_horizontal"

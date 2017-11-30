@@ -1,9 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
-<android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context="com.google.firebase.codelab.friendlychat.FindUser">
+    android:layout_margin="16dp"
+    android:orientation="vertical">
 
-</android.support.constraint.ConstraintLayout>
+    <SearchView
+        android:id="@+id/searchView"
+        android:layout_width="wrap_content"
+        android:elevation="2dp"
+        android:background="#fff"
+        android:layout_height="wrap_content">
+    </SearchView>
+
+</LinearLayout>
