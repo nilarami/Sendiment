@@ -19,9 +19,7 @@
         </activity>
         <activity android:name=".SignInActivity" />
         <activity android:name=".MainActivity" />
-        <activity
-            android:name=".AddChat"
-            android:theme="@style/AppTheme.NoActionBar" />
+        <activity android:name=".AddChat"/>
         <activity android:name=".SignUpActivity" />
         <activity android:name=".FindUser"></activity>
     </application>
