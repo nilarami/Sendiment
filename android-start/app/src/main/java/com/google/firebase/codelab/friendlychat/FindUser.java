@@ -1,7 +1,9 @@
 package com.google.firebase.codelab.friendlychat;
 
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.app.SearchManager;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -11,6 +13,7 @@ import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ListView;
 import android.widget.SearchView;
+import android.widget.TextView;
 import android.widget.Toast;
 import android.databinding.DataBindingUtil;
 import com.google.firebase.codelab.friendlychat.databinding.ActivityFindUserBinding;
@@ -81,12 +84,34 @@ public class FindUser extends AppCompatActivity {
             }
         });
 
-//        listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-//            @Override
-//            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-//
-//            }
-//        });
+        listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+
+                final String val =(String) parent.getItemAtPosition(position);
+                AlertDialog.Builder builder = new AlertDialog.Builder(FindUser.this, R.style.MyDialogTheme);
+
+                builder.setMessage("Are you sure you want to start a chat with " + val + "?")
+                        .setTitle("Start Chat?");
+
+                builder.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int id) {
+                        Toast.makeText(getApplicationContext(), "Starting Chat with " + val, Toast.LENGTH_LONG).show();
+                        Intent intent = new Intent(FindUser.this, FriendlyMessage.class);
+                        startActivity(intent);
+                    }
+                });
+                builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int id) {
+                        dialog.dismiss();
+                    }
+                });
+                builder.show();
+                // 3. Get the AlertDialog from create()
+                AlertDialog dialog = builder.create();
+
+            }
+        });
     }
 
 }
