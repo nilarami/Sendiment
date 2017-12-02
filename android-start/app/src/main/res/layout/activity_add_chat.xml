@@ -6,8 +6,6 @@
     android:layout_height="match_parent"
     tools:context="com.google.firebase.codelab.friendlychat.AddChat">
 
-
-
     <include layout="@layout/content_add_chat" />
 
     <android.support.design.widget.FloatingActionButton
@@ -17,5 +15,22 @@
         android:layout_gravity="bottom|end"
         android:layout_margin="@dimen/fab_margin"
         app:srcCompat="@drawable/ic_add_black_24dp" />
+
+
+        <RelativeLayout
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+
+            <ListView
+                android:id="@+id/chats_list_view"
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content"
+                android:layout_alignParentLeft="true"
+                android:layout_alignParentStart="true"
+                android:layout_below="@+id/search" />
+
+        </RelativeLayout>
 
 </android.support.design.widget.CoordinatorLayout>

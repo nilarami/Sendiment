@@ -19,9 +19,10 @@
         </activity>
         <activity android:name=".SignInActivity" />
         <activity android:name=".MainActivity" />
-        <activity android:name=".AddChat"/>
+        <activity android:name=".AddChat" />
         <activity android:name=".SignUpActivity" />
-        <activity android:name=".FindUser"></activity>
+        <activity android:name=".FindUser" />
+        <activity android:name=".ToneAnalyzer"></activity>
     </application>
 
 </manifest>

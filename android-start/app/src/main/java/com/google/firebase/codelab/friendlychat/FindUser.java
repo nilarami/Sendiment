@@ -65,6 +65,7 @@ public class FindUser extends AppCompatActivity {
                                 Log.d("FindUser", "onDataChange: " + issue.child("username").getValue());
                                 arrayList.add(issue.child("username").getValue());
                                 adapter.getFilter().filter(query_string);
+
                             }
                         }
                     }
@@ -97,7 +98,7 @@ public class FindUser extends AppCompatActivity {
                 builder.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface dialog, int id) {
                         Toast.makeText(getApplicationContext(), "Starting Chat with " + val, Toast.LENGTH_LONG).show();
-                        Intent intent = new Intent(FindUser.this, FriendlyMessage.class);
+                        Intent intent = new Intent(FindUser.this, MainActivity.class);
                         startActivity(intent);
                     }
                 });
