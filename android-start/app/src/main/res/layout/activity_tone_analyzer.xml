@@ -1,27 +1,23 @@
 <?xml version="1.0" encoding="utf-8"?>
-<android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context="com.google.firebase.codelab.friendlychat.ToneAnalyzer">
+    android:paddingLeft="16dp"
+    android:paddingRight="16dp"
+    android:orientation="vertical" >
 
     <EditText
-        android:id="@+id/msending"
+        android:id="@+id/mtext"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:ems="10"
         android:inputType="textPersonName"
-        android:text="Enter Text"
-        tools:layout_editor_absoluteX="41dp"
-        tools:layout_editor_absoluteY="149dp" />
+        android:text="Enter Text" />
 
     <Button
         android:id="@+id/msendingsent"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Submit"
-        tools:layout_editor_absoluteX="265dp"
-        tools:layout_editor_absoluteY="149dp" />
+        android:text="Submit"/>
 
-</android.support.constraint.ConstraintLayout>
+</LinearLayout>

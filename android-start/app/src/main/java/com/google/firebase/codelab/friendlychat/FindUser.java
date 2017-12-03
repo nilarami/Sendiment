@@ -16,6 +16,9 @@ import android.widget.SearchView;
 import android.widget.TextView;
 import android.widget.Toast;
 import android.databinding.DataBindingUtil;
+
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.codelab.friendlychat.databinding.ActivityFindUserBinding;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
@@ -54,6 +57,8 @@ public class FindUser extends AppCompatActivity {
         searchview.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
             @Override
             public boolean onQueryTextSubmit(final String query_string) {
+                FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+
                 Query query = reference.child("users").orderByChild("username").equalTo(query_string);
                 query.addListenerForSingleValueEvent(new ValueEventListener() {
                     @Override
@@ -99,6 +104,7 @@ public class FindUser extends AppCompatActivity {
                     public void onClick(DialogInterface dialog, int id) {
                         Toast.makeText(getApplicationContext(), "Starting Chat with " + val, Toast.LENGTH_LONG).show();
                         Intent intent = new Intent(FindUser.this, MainActivity.class);
+                        intent.putExtra("USER_ID", val);
                         startActivity(intent);
                     }
                 });

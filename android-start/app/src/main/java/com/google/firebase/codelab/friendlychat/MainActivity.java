@@ -15,10 +15,13 @@
  */
 package com.google.firebase.codelab.friendlychat;
 
+import android.app.AlertDialog;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.StrictMode;
 import android.preference.PreferenceManager;
 import android.support.annotation.NonNull;
 import android.support.v4.content.ContextCompat;
@@ -76,6 +79,16 @@ import com.google.firebase.appindexing.builders.PersonBuilder;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
+import com.ibm.watson.developer_cloud.http.ServiceCall;
+import com.ibm.watson.developer_cloud.tone_analyzer.v3.ToneAnalyzer;
+import com.ibm.watson.developer_cloud.tone_analyzer.v3.model.ToneAnalysis;
+import com.ibm.watson.developer_cloud.tone_analyzer.v3.model.ToneInput;
+import com.ibm.watson.developer_cloud.tone_analyzer.v3.model.ToneOptions;
+
+
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -105,7 +118,7 @@ public class MainActivity extends AppCompatActivity
     private static final int REQUEST_INVITE = 1;
     private static final int REQUEST_IMAGE = 2;
     private static final String LOADING_IMAGE_URL = "https://www.google.com/images/spin-32.gif";
-    public static final int DEFAULT_MSG_LENGTH_LIMIT = 10;
+    public static final int DEFAULT_MSG_LENGTH_LIMIT = 250;
     public static final String ANONYMOUS = "anonymous";
     private static final String MESSAGE_SENT_EVENT = "message_sent";
     private String mUsername;
@@ -113,6 +126,10 @@ public class MainActivity extends AppCompatActivity
     private SharedPreferences mSharedPreferences;
     private GoogleApiClient mGoogleApiClient;
     private static final String MESSAGE_URL = "http://friendlychat.firebase.google.com/message/";
+
+
+    private String lastText = "";
+
 
     private Button mSendButton;
     private RecyclerView mMessageRecyclerView;
@@ -129,6 +146,17 @@ public class MainActivity extends AppCompatActivity
     private FirebaseRecyclerAdapter<FriendlyMessage, MessageViewHolder>
             mFirebaseAdapter;
 
+    //Watson
+    ToneAnalyzer toneAnalyzer = new ToneAnalyzer("2016-05-19",
+            "6a838dfd-893d-4325-848f-e93e29bf15cf",
+            "kENotTgRfB8u");
+
+
+
+
+
+
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -137,6 +165,11 @@ public class MainActivity extends AppCompatActivity
         // Set default username is anonymous.
         mUsername = ANONYMOUS;
 
+        StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
+        StrictMode.setThreadPolicy(policy);
+
+
+        setTitle(getIntent().getStringExtra("USER_ID"));
         // Initialize Firebase Auth
         mFirebaseAuth = FirebaseAuth.getInstance();
         mFirebaseUser = mFirebaseAuth.getCurrentUser();
@@ -164,7 +197,7 @@ public class MainActivity extends AppCompatActivity
         mLinearLayoutManager.setStackFromEnd(true);
         mMessageRecyclerView.setLayoutManager(mLinearLayoutManager);
 
-// New child entries
+        // New child entries
         mFirebaseDatabaseReference = FirebaseDatabase.getInstance().getReference();
         SnapshotParser<FriendlyMessage> parser = new SnapshotParser<FriendlyMessage>() {
             @Override
@@ -193,11 +226,21 @@ public class MainActivity extends AppCompatActivity
             protected void onBindViewHolder(final MessageViewHolder viewHolder,
                                             int position,
                                             FriendlyMessage friendlyMessage) {
+
                 mProgressBar.setVisibility(ProgressBar.INVISIBLE);
                 if (friendlyMessage.getText() != null) {
-                    viewHolder.messageTextView.setText(friendlyMessage.getText());
-                    viewHolder.messageTextView.setVisibility(TextView.VISIBLE);
-                    viewHolder.messageImageView.setVisibility(ImageView.GONE);
+                        viewHolder.messageTextView.setText(friendlyMessage.getText());
+
+                        int friendlyMessageCount = mFirebaseAdapter.getItemCount();
+                        if(position == friendlyMessageCount - 1){
+                            lastText = friendlyMessage.getText();
+                        }
+
+
+                        Log.d(TAG, "onBindViewHolder: "+ friendlyMessageCount);
+                        viewHolder.messageTextView.setVisibility(TextView.VISIBLE);
+                        viewHolder.messageImageView.setVisibility(ImageView.GONE);
+
                 } else {
                     String imageUrl = friendlyMessage.getImageUrl();
                     if (imageUrl.startsWith("gs://")) {
@@ -229,6 +272,23 @@ public class MainActivity extends AppCompatActivity
 
 
                 viewHolder.messengerTextView.setText(friendlyMessage.getName());
+
+                viewHolder.messageImageView.setVisibility(ImageView.GONE);
+                viewHolder.messengerImageView.setVisibility(ImageView.GONE);
+                viewHolder.messageTextView.setVisibility(TextView.GONE);
+                viewHolder.messengerTextView.setVisibility(TextView.GONE);
+
+                String displayname = mFirebaseUser.getDisplayName().toLowerCase();
+                Log.d(TAG, "onBindViewHolder: "+ displayname);
+                if(friendlyMessage.getToUser() != null) {
+                    if ((friendlyMessage.getToUser().equals("sid")) == true || (friendlyMessage.getToUser().equals(displayname)) == true) {
+                        viewHolder.messageImageView.setVisibility(ImageView.VISIBLE);
+                        viewHolder.messengerImageView.setVisibility(ImageView.VISIBLE);
+                        viewHolder.messageTextView.setVisibility(TextView.VISIBLE);
+                        viewHolder.messengerTextView.setVisibility(TextView.VISIBLE);
+
+                    }
+                }
                 if (friendlyMessage.getPhotoUrl() == null) {
                     viewHolder.messengerImageView.setImageDrawable(ContextCompat.getDrawable(MainActivity.this,
                             R.drawable.ic_account_circle_black_36dp));
@@ -288,6 +348,7 @@ public class MainActivity extends AppCompatActivity
             public void onClick(View view) {
                 FriendlyMessage friendlyMessage = new
                         FriendlyMessage(mMessageEditText.getText().toString(),
+                        getIntent().getStringExtra("USER_ID"),
                         mUsername,
                         mPhotoUrl,
                         null /* no image */);
@@ -350,9 +411,117 @@ public class MainActivity extends AppCompatActivity
                 startActivity(new Intent(this, SignInActivity.class));
                 finish();
                 return true;
+            case R.id.analyze:
+                //Log.d(TAG, "onOptionsItemSelected: " + lastText);
+                displayAnalysis(lastText);
+                return true;
             default:
                 return super.onOptionsItemSelected(item);
+
         }
+    }
+
+    private void displayAnalysis(String text) {
+        Log.d(TAG, "displayAnalysis: " + text);
+        //JSONObject json = new JSONObject();
+        //json.put("text", text2);
+
+
+// Call the service and get the tone
+
+        try {
+            ToneOptions toneOptions = new ToneOptions.Builder().html(text).build();
+            ToneAnalysis tone = toneAnalyzer.tone(toneOptions).execute();
+
+            String finalString = "Emotion: ";
+
+            String str = tone.toString();
+            System.out.println(str);
+
+            JSONObject jsonObj = new JSONObject(str);
+            JSONObject tone_cat = (JSONObject) jsonObj.get("document_tone");
+            JSONArray catArr = (JSONArray) tone_cat.get("tone_categories");
+
+            JSONObject Emotional = (JSONObject) catArr.get(0);
+            JSONArray em_tone = (JSONArray) Emotional.get("tones");
+            JSONObject MAXItem = (JSONObject) em_tone.get(0);
+            String MAXscoreInt = MAXItem.get("score").toString();
+            String type = MAXItem.get("tone_name").toString();
+            Double MAXresult = Double.parseDouble(MAXscoreInt);
+            for(int x = 0; x < em_tone.length(); x++){
+                JSONObject scores = (JSONObject) em_tone.get(x);
+                String scoreInt = scores.get("score").toString();
+                Double result = Double.parseDouble(scoreInt);
+                if(result > MAXresult) MAXresult = result;
+                System.out.println(scoreInt);
+            }
+            System.out.println("MAX RESULT: " + MAXresult );
+            finalString += MAXresult + " " + type + ".  ";
+
+
+
+            JSONObject Emotional2 = (JSONObject) catArr.get(1);
+            JSONArray em_tone2 = (JSONArray) Emotional2.get("tones");
+            JSONObject MAXItem2 = (JSONObject) em_tone2.get(0);
+            String MAXscoreInt2 = MAXItem2.get("score").toString();
+            String type2 = MAXItem2.get("tone_name").toString();
+            Double MAXresult2 = Double.parseDouble(MAXscoreInt2);
+            for(int x = 0; x < em_tone2.length(); x++){
+                JSONObject scores = (JSONObject) em_tone2.get(x);
+                String scoreInt = scores.get("score").toString();
+                Double result = Double.parseDouble(scoreInt);
+                if(result > MAXresult2) MAXresult2 = result;
+                System.out.println(scoreInt);
+            }
+            System.out.println("MAX RESULT2: " + MAXresult2);
+            finalString += (" Language Tone: " + MAXresult2 + " " + type2 + ". ");
+
+            JSONObject Emotional3 = (JSONObject) catArr.get(2);
+            JSONArray em_tone3 = (JSONArray) Emotional3.get("tones");
+            JSONObject MAXItem3 = (JSONObject) em_tone3.get(0);
+            String MAXscoreInt3 = MAXItem3.get("score").toString();
+            String type3 = MAXItem3.get("tone_name").toString();
+            Double MAXresult3 = Double.parseDouble(MAXscoreInt3);
+            for(int x = 0; x < em_tone3.length(); x++){
+                JSONObject scores = (JSONObject) em_tone3.get(x);
+                String scoreInt = scores.get("score").toString();
+                Double result = Double.parseDouble(scoreInt);
+                if(result > MAXresult3) MAXresult3 = result;
+                System.out.println(scoreInt);
+            }
+            System.out.println("MAX RESULT3: " + MAXresult3);
+            finalString += (" Social Tone: " + MAXresult3 + " " + type3);
+            System.out.println(finalString);
+
+            AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this, R.style.MyDialogTheme);
+
+            builder.setMessage(finalString)
+                    .setTitle("Analysis");
+
+            builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                public void onClick(DialogInterface dialog, int id) {
+                    dialog.dismiss();
+                }
+            });
+            builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                public void onClick(DialogInterface dialog, int id) {
+                    dialog.dismiss();
+                }
+            });
+            builder.show();
+            // 3. Get the AlertDialog from create()
+            AlertDialog dialog = builder.create();
+
+
+
+
+
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+
+
+        //System.out.println("TONE IS: " + tone.getDocumentTone());
     }
 
     @Override
@@ -374,7 +543,9 @@ public class MainActivity extends AppCompatActivity
                     final Uri uri = data.getData();
                     Log.d(TAG, "Uri: " + uri.toString());
 
-                    FriendlyMessage tempMessage = new FriendlyMessage(null, mUsername, mPhotoUrl,
+                    FriendlyMessage tempMessage = new FriendlyMessage(null,
+                            getIntent().getStringExtra("USER_ID"),
+                            mUsername, mPhotoUrl,
                             LOADING_IMAGE_URL);
                     mFirebaseDatabaseReference.child(MESSAGES_CHILD).push()
                             .setValue(tempMessage, new DatabaseReference.CompletionListener() {
@@ -408,7 +579,9 @@ public class MainActivity extends AppCompatActivity
                     public void onComplete(@NonNull Task<UploadTask.TaskSnapshot> task) {
                         if (task.isSuccessful()) {
                             FriendlyMessage friendlyMessage =
-                                    new FriendlyMessage(null, mUsername, mPhotoUrl,
+                                    new FriendlyMessage(null,
+                                            getIntent().getStringExtra("USER_ID"),
+                                            mUsername, mPhotoUrl,
                                             task.getResult().getMetadata().getDownloadUrl()
                                                     .toString());
                             mFirebaseDatabaseReference.child(MESSAGES_CHILD).child(key)

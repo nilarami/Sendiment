@@ -29,5 +29,14 @@ public class StartPage extends AppCompatActivity {
                 startActivity(i);
             }
         });
+
+        Button test_btn = findViewById(R.id.test_button);
+        test_btn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent i = new Intent(getApplicationContext(),ToneAnalyzer.class);
+                startActivity(i);
+            }
+        });
     }
 }

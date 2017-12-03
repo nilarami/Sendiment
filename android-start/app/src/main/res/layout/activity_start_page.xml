@@ -21,7 +21,7 @@
         android:layout_marginBottom="16dp"
         android:layout_marginTop="16dp"
         android:gravity="center_horizontal"
-        android:paddingBottom="90dp"
+        android:paddingBottom="50dp"
         android:text="Analyze Conversations"
         android:textSize="16sp" />
 
@@ -44,6 +44,12 @@
         android:text="LOGIN"
         android:textAllCaps="false"
         android:textColor="@android:color/holo_blue_light" />
+
+    <Button
+        android:id="@+id/test_button"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Test" />
 
     <TextView
         android:id="@+id/textView"

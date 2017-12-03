@@ -55,6 +55,9 @@ dependencies {
     // Firebase UI
     compile 'com.firebaseui:firebase-ui-database:3.0.0'
 
+    //Watson
+    compile 'com.ibm.watson.developer_cloud:tone-analyzer:4.0.0'
+
     // Testing dependencies
     androidTestCompile 'junit:junit:4.12'
     androidTestCompile 'com.android.support.test.espresso:espresso-core:2.2.2'
