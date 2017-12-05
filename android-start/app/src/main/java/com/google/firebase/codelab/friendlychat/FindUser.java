@@ -37,19 +37,24 @@ public class FindUser extends AppCompatActivity {
     ActivityFindUserBinding activityMainBinding;
     ListAdapter adapter;
 
+    private FirebaseAuth mFirebaseAuth;
+    private FirebaseUser mFirebaseUser;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_find_user);
 
         //arrayList.add("Test_User");
+        mFirebaseAuth = FirebaseAuth.getInstance();
+        mFirebaseUser = mFirebaseAuth.getCurrentUser();
 
 
         adapter = (ListAdapter) new ListAdapter(arrayList);
         ListView listView = findViewById(R.id.list_view);
         listView.setAdapter(adapter);
         SearchView searchview = findViewById(R.id.search);
-
+        searchview.setIconifiedByDefault(false);
 
 
         final DatabaseReference reference = FirebaseDatabase.getInstance().getReference();
@@ -75,6 +80,7 @@ public class FindUser extends AppCompatActivity {
                         }
                     }
 
+
                     @Override
                     public void onCancelled(DatabaseError databaseError) {
 
@@ -82,6 +88,7 @@ public class FindUser extends AppCompatActivity {
                 });
                 return false;
             }
+
 
             @Override
             public boolean onQueryTextChange(String newText) {
@@ -105,6 +112,7 @@ public class FindUser extends AppCompatActivity {
                         Toast.makeText(getApplicationContext(), "Starting Chat with " + val, Toast.LENGTH_LONG).show();
                         Intent intent = new Intent(FindUser.this, MainActivity.class);
                         intent.putExtra("USER_ID", val);
+                        reference.child("users").child(mFirebaseUser.getUid()).child("texting").setValue(val);
                         startActivity(intent);
                     }
                 });

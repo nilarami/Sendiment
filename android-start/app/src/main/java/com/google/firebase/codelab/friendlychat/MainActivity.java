@@ -16,6 +16,7 @@
 package com.google.firebase.codelab.friendlychat;
 
 import android.app.AlertDialog;
+import android.content.ActivityNotFoundException;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -23,6 +24,7 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.os.StrictMode;
 import android.preference.PreferenceManager;
+import android.speech.RecognizerIntent;
 import android.support.annotation.NonNull;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
@@ -90,7 +92,9 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.Map;
 
 import de.hdodenhof.circleimageview.CircleImageView;
@@ -146,11 +150,12 @@ public class MainActivity extends AppCompatActivity
     private FirebaseRecyclerAdapter<FriendlyMessage, MessageViewHolder>
             mFirebaseAdapter;
 
+    private static final int REQ_CODE_SPEECH_INPUT = 100;
+
     //Watson
     ToneAnalyzer toneAnalyzer = new ToneAnalyzer("2016-05-19",
             "6a838dfd-893d-4325-848f-e93e29bf15cf",
             "kENotTgRfB8u");
-
 
 
 
@@ -183,6 +188,8 @@ public class MainActivity extends AppCompatActivity
             if (mFirebaseUser.getPhotoUrl() != null) {
                 mPhotoUrl = mFirebaseUser.getPhotoUrl().toString();
             }
+
+
         }
 
         mGoogleApiClient = new GoogleApiClient.Builder(this)
@@ -278,10 +285,10 @@ public class MainActivity extends AppCompatActivity
                 viewHolder.messageTextView.setVisibility(TextView.GONE);
                 viewHolder.messengerTextView.setVisibility(TextView.GONE);
 
-                String displayname = mFirebaseUser.getDisplayName().toLowerCase();
+                String displayname = mFirebaseUser.getDisplayName();
                 Log.d(TAG, "onBindViewHolder: "+ displayname);
                 if(friendlyMessage.getToUser() != null) {
-                    if ((friendlyMessage.getToUser().equals("sid")) == true || (friendlyMessage.getToUser().equals(displayname)) == true) {
+                    if (((friendlyMessage.getToUser().equals(getIntent().getStringExtra("USER_ID"))) == true && (friendlyMessage.getName().equals(displayname)) == true) || ((friendlyMessage.getToUser().equals(displayname)) == true && (friendlyMessage.getName().equals(getIntent().getStringExtra("USER_ID"))) == true)) {
                         viewHolder.messageImageView.setVisibility(ImageView.VISIBLE);
                         viewHolder.messengerImageView.setVisibility(ImageView.VISIBLE);
                         viewHolder.messageTextView.setVisibility(TextView.VISIBLE);
@@ -362,13 +369,24 @@ public class MainActivity extends AppCompatActivity
         mAddMessageImageView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
-                intent.addCategory(Intent.CATEGORY_OPENABLE);
-                intent.setType("image/*");
-                startActivityForResult(intent, REQUEST_IMAGE);
+                startVoiceInput();
             }
         });
     }
+
+    private void startVoiceInput() {
+        Intent intent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
+        intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
+        intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE, Locale.getDefault());
+        intent.putExtra(RecognizerIntent.EXTRA_PROMPT, "Hello, How can I help you?");
+        try {
+            startActivityForResult(intent, REQ_CODE_SPEECH_INPUT);
+        } catch (ActivityNotFoundException a) {
+
+        }
+    }
+
+
 
     @Override
     public void onStart() {
@@ -412,7 +430,7 @@ public class MainActivity extends AppCompatActivity
                 finish();
                 return true;
             case R.id.analyze:
-                //Log.d(TAG, "onOptionsItemSelected: " + lastText);
+                Log.d(TAG, "onOptionsItemSelected: " + lastText);
                 displayAnalysis(lastText);
                 return true;
             default:
@@ -433,7 +451,7 @@ public class MainActivity extends AppCompatActivity
             ToneOptions toneOptions = new ToneOptions.Builder().html(text).build();
             ToneAnalysis tone = toneAnalyzer.tone(toneOptions).execute();
 
-            String finalString = "Emotion: ";
+            String finalString = "Emotion Tone: ";
 
             String str = tone.toString();
             System.out.println(str);
@@ -452,11 +470,12 @@ public class MainActivity extends AppCompatActivity
                 JSONObject scores = (JSONObject) em_tone.get(x);
                 String scoreInt = scores.get("score").toString();
                 Double result = Double.parseDouble(scoreInt);
-                if(result > MAXresult) MAXresult = result;
+                if(result > MAXresult)
+                { MAXresult = result; type = ((JSONObject) em_tone.get(x)).get("tone_name").toString();   }
                 System.out.println(scoreInt);
             }
             System.out.println("MAX RESULT: " + MAXresult );
-            finalString += MAXresult + " " + type + ".  ";
+            finalString += type + " " + MAXresult + "\n";
 
 
 
@@ -470,11 +489,12 @@ public class MainActivity extends AppCompatActivity
                 JSONObject scores = (JSONObject) em_tone2.get(x);
                 String scoreInt = scores.get("score").toString();
                 Double result = Double.parseDouble(scoreInt);
-                if(result > MAXresult2) MAXresult2 = result;
+                if(result > MAXresult2) { MAXresult2 = result; type2 = ((JSONObject) em_tone2.get(x)).get("tone_name").toString(); }
+
                 System.out.println(scoreInt);
             }
             System.out.println("MAX RESULT2: " + MAXresult2);
-            finalString += (" Language Tone: " + MAXresult2 + " " + type2 + ". ");
+            finalString += ("Language Tone: " + type2 + " " + MAXresult2 + "\n");
 
             JSONObject Emotional3 = (JSONObject) catArr.get(2);
             JSONArray em_tone3 = (JSONArray) Emotional3.get("tones");
@@ -486,11 +506,11 @@ public class MainActivity extends AppCompatActivity
                 JSONObject scores = (JSONObject) em_tone3.get(x);
                 String scoreInt = scores.get("score").toString();
                 Double result = Double.parseDouble(scoreInt);
-                if(result > MAXresult3) MAXresult3 = result;
+                if(result > MAXresult3) {MAXresult3 = result; type3 = ((JSONObject) em_tone3.get(x)).get("tone_name").toString();}
                 System.out.println(scoreInt);
             }
             System.out.println("MAX RESULT3: " + MAXresult3);
-            finalString += (" Social Tone: " + MAXresult3 + " " + type3);
+            finalString += ("Social Tone: " + type3 + " " + MAXresult3);
             System.out.println(finalString);
 
             AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this, R.style.MyDialogTheme);
@@ -536,6 +556,17 @@ public class MainActivity extends AppCompatActivity
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         Log.d(TAG, "onActivityResult: requestCode=" + requestCode + ", resultCode=" + resultCode);
+
+        switch (requestCode) {
+            case REQ_CODE_SPEECH_INPUT: {
+                if (resultCode == RESULT_OK && null != data) {
+                    ArrayList<String> result = data.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS);
+                    mMessageEditText.append(result.get(0));
+                }
+                break;
+            }
+
+        }
 
         if (requestCode == REQUEST_IMAGE) {
             if (resultCode == RESULT_OK) {
